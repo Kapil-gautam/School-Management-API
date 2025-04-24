@@ -12,10 +12,24 @@ router.post('/addSchool', async (req, res) => {
   }
 
   try {
+    const lat = parseFloat(latitude);
+    const long = parseFloat(longitude);
+
+    // Check if a school with same latitude and longitude already exists
+    const [existing] = await db.execute(
+      'SELECT * FROM schools WHERE latitude = ? AND longitude = ?',
+      [lat, long]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'A school with the same coordinates already exists' });
+    }
+
     await db.execute(
       'INSERT INTO schools (name, address, latitude, longitude) VALUES (?, ?, ?, ?)',
-      [name, address, parseFloat(latitude), parseFloat(longitude)]
+      [name, address, lat, long]
     );
+
     res.status(201).json({ message: 'School added successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -46,6 +60,15 @@ router.get('/listSchools', async (req, res) => {
   } catch (error) {
     console.error('Error in /listSchools:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/testDB', async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT NOW() AS current_time');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
