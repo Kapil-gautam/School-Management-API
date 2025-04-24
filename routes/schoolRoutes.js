@@ -44,6 +44,7 @@ router.get('/listSchools', async (req, res) => {
 
     res.json(schoolsWithDistance);
   } catch (error) {
+    console.error('Error in /listSchools:', error);
     res.status(500).json({ error: error.message });
   }
 });
